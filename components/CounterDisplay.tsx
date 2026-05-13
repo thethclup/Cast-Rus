@@ -1,7 +1,7 @@
 'use client'
 
 import { useReadContract } from 'wagmi'
-import { baseSepolia } from 'wagmi/chains'
+import { base } from 'wagmi/chains'
 import { COUNTER_ADDRESS, counterAbi } from '@/config/counter'
 
 export function CounterDisplay() {
@@ -9,7 +9,7 @@ export function CounterDisplay() {
     address: COUNTER_ADDRESS,
     abi: counterAbi,
     functionName: 'number',
-    chainId: baseSepolia.id,
+    chainId: base.id,
   })
 
   if (isLoading && count === undefined) return (

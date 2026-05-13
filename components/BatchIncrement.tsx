@@ -13,7 +13,7 @@ import {
 import { readContractQueryOptions } from 'wagmi/query'
 import { useQueryClient } from '@tanstack/react-query'
 import { encodeFunctionData } from 'viem'
-import { baseSepolia } from 'wagmi/chains'
+import { base } from 'wagmi/chains'
 import { config } from '@/config/wagmi'
 import { useWalletCapabilities } from '@/hooks/useWalletCapabilities'
 import { COUNTER_ADDRESS, counterAbi } from '@/config/counter'
@@ -22,7 +22,7 @@ const counterQueryKey = readContractQueryOptions(config, {
   address: COUNTER_ADDRESS,
   abi: counterAbi,
   functionName: 'number',
-  chainId: baseSepolia.id,
+  chainId: base.id,
 }).queryKey
 
 export function BatchIncrement() {
@@ -53,13 +53,13 @@ function BatchFlow() {
     }
   }, [isSuccess, queryClient])
 
-  if (chainId !== baseSepolia.id) {
+  if (chainId !== base.id) {
     return (
       <button 
-        onClick={() => switchChain({ chainId: baseSepolia.id })}
+        onClick={() => switchChain({ chainId: base.id })}
         className="w-full py-4 px-6 bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-2xl transition-all shadow-md active:scale-[0.98]"
       >
-        {isSwitching ? 'Switching...' : 'Switch to Base Sepolia'}
+        {isSwitching ? 'Switching...' : 'Switch to Base'}
       </button>
     )
   }
@@ -78,7 +78,7 @@ function BatchFlow() {
               { to: COUNTER_ADDRESS, data: incrementData },
               { to: COUNTER_ADDRESS, data: incrementData },
             ],
-            chainId: baseSepolia.id,
+            chainId: base.id,
           })
         }
         disabled={isPending || isConfirming}
@@ -109,13 +109,13 @@ function SequentialFlow() {
     }
   }, [isSuccess, queryClient])
 
-  if (chainId !== baseSepolia.id) {
+  if (chainId !== base.id) {
     return (
       <button 
-        onClick={() => switchChain({ chainId: baseSepolia.id })}
+        onClick={() => switchChain({ chainId: base.id })}
         className="w-full py-4 px-6 bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-2xl transition-all shadow-md active:scale-[0.98]"
       >
-        {isSwitching ? 'Switching...' : 'Switch to Base Sepolia'}
+        {isSwitching ? 'Switching...' : 'Switch to Base'}
       </button>
     )
   }
@@ -128,7 +128,7 @@ function SequentialFlow() {
             address: COUNTER_ADDRESS,
             abi: counterAbi,
             functionName: 'increment',
-            chainId: baseSepolia.id,
+            chainId: base.id,
           })
         }
         disabled={isPending || isConfirming}
