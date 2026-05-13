@@ -29,9 +29,13 @@ export function BatchIncrement() {
   const { isConnected } = useAccount()
   const { supportsBatching } = useWalletCapabilities()
 
-  if (!isConnected) return <p>Connect your wallet first.</p>
+  if (!isConnected) return <p className="text-slate-500 font-medium">Connect your wallet to increment.</p>
 
-  return supportsBatching ? <BatchFlow /> : <SequentialFlow />
+  return (
+    <div className="w-full">
+      {supportsBatching ? <BatchFlow /> : <SequentialFlow />}
+    </div>
+  )
 }
 
 function BatchFlow() {
@@ -51,7 +55,10 @@ function BatchFlow() {
 
   if (chainId !== baseSepolia.id) {
     return (
-      <button onClick={() => switchChain({ chainId: baseSepolia.id })}>
+      <button 
+        onClick={() => switchChain({ chainId: baseSepolia.id })}
+        className="w-full py-4 px-6 bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-2xl transition-all shadow-md active:scale-[0.98]"
+      >
         {isSwitching ? 'Switching...' : 'Switch to Base Sepolia'}
       </button>
     )
@@ -63,7 +70,7 @@ function BatchFlow() {
   })
 
   return (
-    <div>
+    <div className="w-full flex flex-col gap-3">
       <button
         onClick={() =>
           sendCalls({
@@ -75,14 +82,15 @@ function BatchFlow() {
           })
         }
         disabled={isPending || isConfirming}
+        className="w-full py-4 px-6 bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-2xl transition-all shadow-md active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none flex justify-center items-center"
       >
         {isPending
           ? 'Confirm in Wallet...'
           : isConfirming
-          ? 'Confirming...'
+          ? 'Confirming onchain...'
           : 'Increment x2 (Batch)'}
       </button>
-      {isSuccess && <p>Batch confirmed!</p>}
+      {isSuccess && <p className="text-sm font-semibold text-emerald-600 text-center animate-in fade-in slide-in-from-bottom-2">Batch confirmed!</p>}
     </div>
   )
 }
@@ -103,25 +111,32 @@ function SequentialFlow() {
 
   if (chainId !== baseSepolia.id) {
     return (
-      <button onClick={() => switchChain({ chainId: baseSepolia.id })}>
+      <button 
+        onClick={() => switchChain({ chainId: baseSepolia.id })}
+        className="w-full py-4 px-6 bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-2xl transition-all shadow-md active:scale-[0.98]"
+      >
         {isSwitching ? 'Switching...' : 'Switch to Base Sepolia'}
       </button>
     )
   }
 
   return (
-    <button
-      onClick={() =>
-        writeContract({
-          address: COUNTER_ADDRESS,
-          abi: counterAbi,
-          functionName: 'increment',
-          chainId: baseSepolia.id,
-        })
-      }
-      disabled={isPending || isConfirming}
-    >
-      {isPending ? 'Confirm in Wallet...' : isConfirming ? 'Confirming...' : 'Increment'}
-    </button>
+    <div className="w-full flex flex-col gap-3">
+      <button
+        onClick={() =>
+          writeContract({
+            address: COUNTER_ADDRESS,
+            abi: counterAbi,
+            functionName: 'increment',
+            chainId: baseSepolia.id,
+          })
+        }
+        disabled={isPending || isConfirming}
+        className="w-full py-4 px-6 bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-2xl transition-all shadow-md active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none flex justify-center items-center"
+      >
+        {isPending ? 'Confirm in Wallet...' : isConfirming ? 'Confirming onchain...' : 'Increment'}
+      </button>
+      {isSuccess && <p className="text-sm font-semibold text-emerald-600 text-center animate-in fade-in slide-in-from-bottom-2">Confirmed!</p>}
+    </div>
   )
 }
