@@ -13,53 +13,14 @@ async function startServer() {
 
   // --- API Routes ---
 
-  // Agent Card
+  // Agent Card (Serve directly)
   app.get('/.well-known/agent-card.json', (req, res) => {
-    res.json({
-      "name": "Cast Rus Orchestrator",
-      "description": "Cast Rus platformunda \u00e7al\u0131\u015fan ERC-8004 uyumlu AI Agent. Casting operations, rus mechanics, multi-cast management ve automation yapan g\u00fc\u00e7l\u00fc orchestrator.",
-      "version": "1.0.0",
-      "type": "https://eips.ethereum.org/EIPS/eip-8004#registration-v1",
-      "image": "https://cast-rus.vercel.app/logo.png",
-      "wallets": {
-        "base": "0xe157F1F5e12adB38Ba013683E9Ce24efe21e5bA6"
-      },
-      "services": [
-        {
-          "name": "A2A",
-          "endpoint": "https://cast-rus.vercel.app/.well-known/agent-card.json",
-          "version": "1.0.0",
-          "description": "Agent-to-Agent communication"
-        },
-        {
-          "name": "MCP",
-          "endpoint": "https://cast-rus.vercel.app/api/mcp",
-          "version": "1.0.0",
-          "description": "Model Context Protocol - Active command execution"
-        },
-        {
-          "name": "API",
-          "endpoint": "https://cast-rus.vercel.app/api/agent",
-          "version": "1.0.0",
-          "description": "Main agent control API"
-        }
-      ],
-      "capabilities": [
-        "casting-operations",
-        "multi-cast-management",
-        "automation",
-        "rus-mechanics",
-        "task-orchestration",
-        "mcp-command-execution"
-      ],
-      "supportedChains": ["eip155:8453"],
-      "active": true,
-      "status": "online"
-    });
+    res.sendFile(path.join(process.cwd(), 'public', '.well-known', 'agent-card.json'));
   });
 
   // MCP Route
   app.all('/api/mcp', (req, res) => {
+    // ... (logic) ...
     if (req.method === 'GET') {
       res.json({
         protocol: "MCP",
@@ -144,8 +105,11 @@ async function startServer() {
     });
   });
 
-
-  // --- Vite Middleware ---
+  // --- Static Files & Vite Middleware ---
+  
+  // Serve static files from public/
+  app.use(express.static(path.join(process.cwd(), 'public')));
+  
   if (process.env.NODE_ENV !== "production") {
     const vite = await createViteServer({
       server: { middlewareMode: true },

@@ -1,20 +1,47 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
-</div>
+# Cast Rush
 
-# Run and deploy your AI Studio app
+Cast Rush is a fast-paced, chaotic endless runner designed for the Farcaster feed. Dash through trending casts, dodge toxic replies, and collect viral power-ups to become the feed legend.
 
-This contains everything you need to run your app locally.
+## Gameplay
+- **Endless Farcaster Runner:** Navigate an ever-changing feed of content.
+- **On-Chain Integration:** Submit high scores via SIWE (Sign-In-With-Ethereum) on Base Mainnet.
+- **Viral Mechanics:** Collect likes/reposts to enter Viral Mode.
+- **Smart Agent Ready:** Built with support for ERC-8004 trustless agents.
 
-View your app in AI Studio: https://ai.studio/apps/e094856b-06d7-45da-89f7-fabd741f8a47
+## Technical Stack
+- **Framework:** Next.js 15 (App Router)
+- **Language:** TypeScript
+- **Styling:** Tailwind CSS
+- **Game Engine:** Custom HTML5 Canvas implementation
+- **Web3:** Wagmi, Viem (Base Mainnet)
+- **Animations:** Framer Motion
 
-## Run Locally
+## Deployment & Sensitive Configurations
 
-**Prerequisites:**  Node.js
+### Environment Setup
+To run this application, configure the following variables in your deployment environment.
 
+Copy `.env.example` to `.env` locally (for development):
+```bash
+cp .env.example .env
+```
 
-1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
+| Variable | Description |
+| :--- | :--- |
+| `GEMINI_API_KEY` | Required for Gemini AI features. |
+| `APP_URL` | The URL where the app is hosted (e.g., Vercel URL). |
+
+**⚠️ SECURITY WARNING:**
+- Never commit the `.env` file to version control.
+- Ensure your private keys, API secrets, and wallet mnemonics are stored securely in your deployment provider's secrets management system (e.g., Vercel Environment Variables, GitHub Secrets).
+
+### Agent Integration
+The application exposes endpoints required for ERC-8004 interoperability:
+- **Agent Card:** `/.well-known/agent-card.json`
+- **MCP Endpoint:** `/api/mcp`
+- **Agent API:** `/api/agent`
+
+Ensure these paths are publicly accessible on your deployed domain.
+
+## License
+Apache 2.0
