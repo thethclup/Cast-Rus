@@ -1,7 +1,10 @@
-import type { NextConfig } from 'next'
+import type { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
-  reactStrictMode: true,
-}
+  webpack: (config) => {
+    config.externals.push('porto/internal', 'accounts');
+    return config;
+  },
+};
 
-export default nextConfig
+export default nextConfig;
