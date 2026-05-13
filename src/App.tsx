@@ -1,3 +1,4 @@
+'use client';
 import GameCanvas from './components/GameCanvas';
 import HUD from './components/HUD';
 import TitleScreen from './components/TitleScreen';
