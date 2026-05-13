@@ -1,11 +1,16 @@
+import type { Metadata } from 'next'
+import { Providers } from './providers'
+import './globals.css'
 
-import React from 'react';
-import { Providers } from './providers';
+export const metadata: Metadata = {
+  title: 'My Base App',
+  description: 'Built on Base',
+}
 
 export default function RootLayout({
   children,
 }: {
-  children: React.ReactNode;
+  children: React.ReactNode
 }) {
   return (
     <html lang="en">
@@ -15,5 +20,5 @@ export default function RootLayout({
         </Providers>
       </body>
     </html>
-  );
+  )
 }
