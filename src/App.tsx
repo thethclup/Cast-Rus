@@ -1,13 +1,11 @@
-'use client';
+import GameCanvas from './components/GameCanvas';
+import HUD from './components/HUD';
+import TitleScreen from './components/TitleScreen';
+import GameOverScreen from './components/GameOverScreen';
+import WalletConnect from './components/WalletConnect';
+import { useGameStore } from './store/useGameStore';
 
-import GameCanvas from '../components/GameCanvas';
-import HUD from '../components/HUD';
-import TitleScreen from '../components/TitleScreen';
-import GameOverScreen from '../components/GameOverScreen';
-import WalletConnect from '../components/WalletConnect';
-import { useGameStore } from '../store/useGameStore';
-
-export default function Page() {
+export default function App() {
   const screen = useGameStore((state) => state.screen);
 
   return (
@@ -22,3 +20,4 @@ export default function Page() {
     </div>
   );
 }
+
