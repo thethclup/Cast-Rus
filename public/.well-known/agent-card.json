@@ -1,0 +1,41 @@
+{
+  "name": "Cast Rus Orchestrator",
+  "description": "Cast Rus platformunda çalışan ERC-8004 uyumlu AI Agent. Casting operations, rus mechanics, multi-cast management ve automation yapan güçlü orchestrator.",
+  "version": "1.0.0",
+  "type": "https://eips.ethereum.org/EIPS/eip-8004#registration-v1",
+  "image": "https://cast-rus.vercel.app/logo.png",
+  "wallets": {
+    "base": "0xe157F1F5e12adB38Ba013683E9Ce24efe21e5bA6"
+  },
+  "services": [
+    {
+      "name": "A2A",
+      "endpoint": "https://cast-rus.vercel.app/.well-known/agent-card.json",
+      "version": "1.0.0",
+      "description": "Agent-to-Agent communication"
+    },
+    {
+      "name": "MCP",
+      "endpoint": "https://cast-rus.vercel.app/api/mcp",
+      "version": "1.0.0",
+      "description": "Model Context Protocol - Active command execution"
+    },
+    {
+      "name": "API",
+      "endpoint": "https://cast-rus.vercel.app/api/agent",
+      "version": "1.0.0",
+      "description": "Main agent control API"
+    }
+  ],
+  "capabilities": [
+    "casting-operations",
+    "multi-cast-management",
+    "automation",
+    "rus-mechanics",
+    "task-orchestration",
+    "mcp-command-execution"
+  ],
+  "supportedChains": ["eip155:8453"],
+  "active": true,
+  "status": "online"
+}

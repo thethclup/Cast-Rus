@@ -1,5 +1,6 @@
 import express from 'express';
 import path from 'path';
+import cors from 'cors';
 import { createServer as createViteServer } from 'vite';
 
 async function startServer() {
@@ -8,6 +9,7 @@ async function startServer() {
 
   // Add JSON parsing middleware
   app.use(express.json());
+  app.use(cors());
 
   // --- API Routes ---
 
