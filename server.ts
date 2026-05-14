@@ -20,17 +20,14 @@ async function startServer() {
 
   // MCP Route
   app.all('/api/mcp', (req, res) => {
-    // ... (logic) ...
     if (req.method === 'GET') {
       res.json({
         protocol: "MCP",
         version: "1.0.0",
         name: "Cast Rus MCP Endpoint",
         status: "active",
-        agentName: "Cast Rus Orchestrator",
-        description: "Active and responsive MCP server for Cast Rus Agent",
-        capabilities: ["casting-operations", "multi-cast-management", "automation"],
-        supportedCommands: ["status", "cast", "execute", "list_tasks"],
+        description: "Active MCP server for Cast Rus Orchestrator Agent",
+        capabilities: ["casting-operations", "creative-automation", "multi-cast-management"],
         timestamp: new Date().toISOString()
       });
       return;
@@ -39,51 +36,42 @@ async function startServer() {
     if (req.method === 'POST') {
       try {
         const body = req.body;
-        const { command, params } = body || {};
+        const { action, command, params } = body || {};
 
-        let result: any = {};
+        let result: any;
 
-        switch (command) {
+        switch (action || command) {
           case "status":
-            result = { status: "online", activeCasts: 5, load: "optimal" };
-            break;
-
-          case "cast":
-            result = { 
-              success: true, 
-              message: "Cast operation completed successfully",
-              castType: params?.type || "default",
-              result: "Entity summoned"
-            };
+          case "ping":
+            result = { status: "online", message: "Cast Rus Agent is ready" };
             break;
 
           case "execute":
-            result = { 
-              success: true, 
-              action: params?.action,
-              message: "Task executed on Cast Rus platform"
+            result = {
+              success: true,
+              executed: command || params,
+              timestamp: new Date().toISOString()
             };
             break;
 
           default:
-            result = { 
-              success: true, 
-              message: "Command received", 
-              data: body 
+            result = {
+              success: true,
+              message: "Command received",
+              data: body
             };
         }
 
         res.json({
+          status: "success",
           agent: "Cast Rus Orchestrator",
-          success: true,
-          command: command,
-          result: result,
+          response: result,
           receivedAt: new Date().toISOString()
         });
       } catch (error) {
-        res.status(400).json({ 
-          success: false, 
-          error: "Invalid request format" 
+        res.status(400).json({
+          status: "error",
+          message: "Failed to process command"
         });
       }
       return;
@@ -95,13 +83,12 @@ async function startServer() {
 
   // Agent Route
   app.get('/api/agent', (req, res) => {
-     res.json({
+    res.json({
       name: "Cast Rus Orchestrator",
       status: "active",
       wallet: "0xe157F1F5e12adB38Ba013683E9Ce24efe21e5bA6",
       platform: "Cast Rus",
-      version: "1.0.0",
-      message: "Agent is running and ready for tasks"
+      version: "1.0.0"
     });
   });
 
