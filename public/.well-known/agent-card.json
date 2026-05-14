@@ -1,6 +1,6 @@
 {
   "name": "Cast Rus Orchestrator",
-  "description": "Cast Rus platformunda çalışan ERC-8004 uyumlu AI Agent. Casting operations, rus mechanics, multi-cast management ve automation yapan güçlü orchestrator.",
+  "description": "Cast Rus platformunda çalışan ERC-8004 uyumlu AI Agent. Casting operations, creative automation ve multi-cast management yapan akıllı orchestrator.",
   "version": "1.0.0",
   "type": "https://eips.ethereum.org/EIPS/eip-8004#registration-v1",
   "image": "https://cast-rus.vercel.app/logo.png",
@@ -29,13 +29,15 @@
   ],
   "capabilities": [
     "casting-operations",
+    "creative-automation",
     "multi-cast-management",
-    "automation",
-    "rus-mechanics",
-    "task-orchestration",
+    "content-generation",
+    "strategic-orchestration",
     "mcp-command-execution"
   ],
-  "supportedChains": ["eip155:8453"],
+  "supportedChains": [
+    "eip155:8453"
+  ],
   "active": true,
   "status": "online"
 }
