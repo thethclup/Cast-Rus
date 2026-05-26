@@ -35,6 +35,28 @@
     "strategic-orchestration",
     "mcp-command-execution"
   ],
+  "skills": [
+    {
+      "name": "get_race_status",
+      "description": "Get the current status of the race"
+    },
+    {
+      "name": "start_race",
+      "description": "Start a new race on the Cast Rus platform"
+    },
+    {
+      "name": "get_leaderboard",
+      "description": "Get the latest leaderboard"
+    },
+    {
+      "name": "optimize_speed",
+      "description": "Optimize agent speed"
+    },
+    {
+      "name": "get_track_info",
+      "description": "Details about the current race track"
+    }
+  ],
   "supportedChains": [
     "eip155:8453"
   ],

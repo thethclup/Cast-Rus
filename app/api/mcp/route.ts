@@ -24,73 +24,107 @@ export async function GET() {
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const { action, command, params, method } = body;
+    const { jsonrpc, id, method, params, action, command } = body;
 
     let result;
 
-    // Standard MCP structure
-    if (method === 'tools/list') {
-      result = {
-        tools: [
-          {
-            name: "get_race_status",
-            description: "Get the current status of the race",
-            inputSchema: { type: "object", properties: {} }
-          },
-          {
-            name: "start_race",
-            description: "Start a new race on the Cast Rus platform",
-            inputSchema: { type: "object", properties: {} }
-          },
-          {
-            name: "get_leaderboard",
-            description: "Get the latest leaderboard",
-            inputSchema: { type: "object", properties: {} }
-          },
-          {
-            name: "optimize_speed",
-            description: "Optimize agent speed",
-            inputSchema: { type: "object", properties: {} }
-          },
-          {
-            name: "get_track_info",
-            description: "Details about the current race track",
-            inputSchema: { type: "object", properties: {} }
+    if (jsonrpc === '2.0') {
+      // JSON-RPC MCP implementation
+      if (method === 'tools/list') {
+        return NextResponse.json({
+          jsonrpc: "2.0",
+          id: id,
+          result: {
+            tools: [
+              {
+                name: "get_race_status",
+                description: "Get the current status of the race",
+                inputSchema: { type: "object", properties: {} }
+              },
+              {
+                name: "start_race",
+                description: "Start a new race on the Cast Rus platform",
+                inputSchema: { type: "object", properties: {} }
+              },
+              {
+                name: "get_leaderboard",
+                description: "Get the latest leaderboard",
+                inputSchema: { type: "object", properties: {} }
+              },
+              {
+                name: "optimize_speed",
+                description: "Optimize agent speed",
+                inputSchema: { type: "object", properties: {} }
+              },
+              {
+                name: "get_track_info",
+                description: "Details about the current race track",
+                inputSchema: { type: "object", properties: {} }
+              }
+            ]
           }
-        ]
-      };
-      
-      return NextResponse.json(result, { headers: CORS_HEADERS });
-    }
-    
-    if (method === 'tools/call') {
-      const toolName = params?.name;
-      // [PLACEHOLDER] Implement actual logic for the 5 tools
-      if (["get_race_status", "start_race", "get_leaderboard", "optimize_speed", "get_track_info"].includes(toolName)) {
-        result = {
-          content: [
-            {
-              type: "text",
-              text: `Executed ${toolName} successfully. [PLACEHOLDER for tool logic]`
-            }
-          ]
-        };
-      } else {
-        result = {
-          content: [
-            {
-              type: "text",
-              text: `Tool ${toolName} not found.`
-            }
-          ],
-          isError: true
-        };
+        }, { headers: CORS_HEADERS });
+      }
+
+      if (method === 'prompts/list') {
+        return NextResponse.json({
+          jsonrpc: "2.0",
+          id: id,
+          result: {
+            prompts: []
+          }
+        }, { headers: CORS_HEADERS });
+      }
+
+      if (method === 'resources/list') {
+        return NextResponse.json({
+          jsonrpc: "2.0",
+          id: id,
+          result: {
+            resources: []
+          }
+        }, { headers: CORS_HEADERS });
       }
       
-      return NextResponse.json(result, { headers: CORS_HEADERS });
+      if (method === 'tools/call') {
+        const toolName = params?.name;
+        if (["get_race_status", "start_race", "get_leaderboard", "optimize_speed", "get_track_info"].includes(toolName)) {
+          return NextResponse.json({
+            jsonrpc: "2.0",
+            id: id,
+            result: {
+              content: [
+                {
+                  type: "text",
+                  text: `Executed ${toolName} successfully.`
+                }
+              ]
+            }
+          }, { headers: CORS_HEADERS });
+        } else {
+          return NextResponse.json({
+            jsonrpc: "2.0",
+            id: id,
+            error: {
+              code: -32601,
+              message: `Tool ${toolName} not found`
+            }
+          }, { headers: CORS_HEADERS });
+        }
+      }
+
+      // Default reply for ping or unsupported methods
+      return NextResponse.json({
+        jsonrpc: "2.0",
+        id: id,
+        result: {
+          status: "online",
+          version: "1.0.0"
+        }
+      }, { headers: CORS_HEADERS });
     }
 
-    // Handle existing legacy/ping commands just in case
+    // Handle legacy REST commands for backward compatibility
     switch (action || command) {
       case "status":
       case "ping":
@@ -122,8 +156,10 @@ export async function POST(req: Request) {
 
   } catch (error) {
     return NextResponse.json({
-      status: "error",
-      message: "Failed to process command"
+      error: {
+        code: -32700,
+        message: "Parse error or failed to process command"
+      }
     }, { status: 400, headers: CORS_HEADERS });
   }
 }
