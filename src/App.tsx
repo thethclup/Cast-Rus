@@ -1,23 +1,32 @@
-import GameCanvas from './components/GameCanvas';
-import HUD from './components/HUD';
-import TitleScreen from './components/TitleScreen';
-import GameOverScreen from './components/GameOverScreen';
-import WalletConnect from './components/WalletConnect';
-import { useGameStore } from './store/useGameStore';
+import React from 'react';
+import { useGameStore } from './store/gameStore';
+import { GameCanvas } from './components/game/GameCanvas';
+import { HUD } from './components/ui/HUD';
+import { Controls } from './components/ui/Controls';
+import { MainMenu } from './components/ui/MainMenu';
+import { GameOver } from './components/ui/GameOver';
+import { AnimatePresence } from 'motion/react';
 
-export default function App() {
-  const screen = useGameStore((state) => state.screen);
+function App() {
+  const gameState = useGameStore(state => state.gameState);
 
   return (
-    <div className="relative w-full h-screen overflow-hidden bg-[#050505] touch-none select-none font-sans">
-      <WalletConnect />
+    <div className="relative w-full h-screen overflow-hidden bg-slate-900 touch-none select-none">
+      <GameCanvas />
       
-      {screen !== 'title' && <GameCanvas />}
-      {screen === 'playing' && <HUD />}
-      
-      {screen === 'title' && <TitleScreen />}
-      {screen === 'game_over' && <GameOverScreen />}
+      {gameState === 'PLAYING' && (
+        <>
+          <HUD />
+          <Controls />
+        </>
+      )}
+
+      <AnimatePresence>
+        {gameState === 'MENU' && <MainMenu />}
+        {gameState === 'GAME_OVER' && <GameOver />}
+      </AnimatePresence>
     </div>
   );
 }
 
+export default App;
