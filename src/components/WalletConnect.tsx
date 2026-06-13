@@ -27,7 +27,7 @@ export default function WalletConnect() {
           onClick={() => connect({ connector })}
           className="bg-[#0052FF] hover:bg-white hover:text-black text-[10px] text-white px-4 py-2 font-mono uppercase tracking-widest font-bold transition-colors"
         >
-          Connect Base
+          {connector.name}
         </button>
       ))}
     </div>

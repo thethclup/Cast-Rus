@@ -1,26 +1,28 @@
 import { useGameStore } from '../store/useGameStore';
 import { motion } from 'motion/react';
 import { useAccount, useSendTransaction } from 'wagmi';
+import { buildAttributionPayload } from '../lib/erc8021';
 
 export default function TitleScreen() {
   const setScreen = useGameStore((state) => state.setScreen);
-  const { isConnected } = useAccount();
+  const { isConnected, address } = useAccount();
   const { sendTransaction } = useSendTransaction();
 
   const handleSayGM = () => {
-    if (!isConnected) {
+    if (!isConnected || !address) {
       alert("Please connect your wallet first to say gm on-chain!");
       return;
     }
-    // Simulate sending 0 ETH transaction for "gm"
-    // Usually there would be an actual contract address and ABI
+    
+    // Send 0 ETH to own address to record the transaction on-chain.
+    // The Base attribution indexer picks this up by reading the ERC-8021 payload in calldata.
     try {
       sendTransaction({
-        to: '0x0000000000000000000000000000000000000000', // Dead address for demo
+        to: address,
         value: 0n,
-        data: '0x676d' // "gm" in hex
+        data: buildAttributionPayload('0x676d') as any // "gm" in hex + ERC-8021 tracking suffix
       });
-      alert('Transaction triggered: "gm" sent on-chain! (Simulated)');
+      alert('Transaction triggered: "gm" request sent!');
     } catch (err) {
       console.error(err);
     }

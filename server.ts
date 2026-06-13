@@ -61,7 +61,10 @@ async function startServer() {
                   { name: "start_race", description: "Start a new race on the Cast Rus platform", inputSchema: { type: "object", properties: {} } },
                   { name: "get_leaderboard", description: "Get the latest leaderboard", inputSchema: { type: "object", properties: {} } },
                   { name: "optimize_speed", description: "Optimize agent speed", inputSchema: { type: "object", properties: {} } },
-                  { name: "get_track_info", description: "Details about the current race track", inputSchema: { type: "object", properties: {} } }
+                  { name: "get_track_info", description: "Details about the current race track", inputSchema: { type: "object", properties: {} } },
+                  { name: "web_request", description: "Base MCP web request tool for fetching data", inputSchema: { type: "object", properties: { url: { type: "string" } }, required: ["url"] } },
+                  { name: "get_balance", description: "Get balance of Base Account", inputSchema: { type: "object", properties: { address: { type: "string" } } } },
+                  { name: "send_transaction", description: "Send transaction on Base", inputSchema: { type: "object", properties: { to: { type: "string" }, value: { type: "string" } } } }
                 ]
               }
             });
@@ -80,7 +83,7 @@ async function startServer() {
 
           if (method === 'tools/call') {
             const toolName = params?.name;
-            if (["get_race_status", "start_race", "get_leaderboard", "optimize_speed", "get_track_info"].includes(toolName)) {
+            if (["get_race_status", "start_race", "get_leaderboard", "optimize_speed", "get_track_info", "web_request", "get_balance", "send_transaction"].includes(toolName)) {
               res.json({
                 jsonrpc: "2.0",
                 id: id,

@@ -25,6 +25,12 @@
       "endpoint": "https://cast-rus.vercel.app/api/agent",
       "version": "1.0.0",
       "description": "Main agent control API"
+    },
+    {
+      "name": "Base MCP",
+      "endpoint": "https://mcp.base.org",
+      "version": "1.0.0",
+      "description": "Base MCP endpoint for AgentKit wallet integrations, balances, and x402 payments"
     }
   ],
   "capabilities": [
@@ -33,7 +39,10 @@
     "multi-cast-management",
     "content-generation",
     "strategic-orchestration",
-    "mcp-command-execution"
+    "mcp-command-execution",
+    "base-mcp-integration",
+    "wallet-management",
+    "web-requests"
   ],
   "skills": [
     {
@@ -55,6 +64,18 @@
     {
       "name": "get_track_info",
       "description": "Details about the current race track"
+    },
+    {
+      "name": "web_request",
+      "description": "Base MCP web request tool for fetching off-chain or documentation data"
+    },
+    {
+      "name": "get_balance",
+      "description": "Get balance of Base Account"
+    },
+    {
+      "name": "send_transaction",
+      "description": "Send a transaction on Base"
     }
   ],
   "supportedChains": [

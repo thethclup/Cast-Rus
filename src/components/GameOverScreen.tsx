@@ -1,27 +1,32 @@
 import { useGameStore } from '../store/useGameStore';
 import { motion } from 'motion/react';
-import { useAccount, useSignMessage } from 'wagmi';
-import { getAttributionCode } from '../lib/erc8021';
+import { useAccount, useSendTransaction } from 'wagmi';
+import { getAttributionCode, buildAttributionPayload, stringToHex } from '../lib/erc8021';
 
 export default function GameOverScreen() {
   const { score, distance, likes, highScore, resetGame } = useGameStore();
   const { isConnected, address } = useAccount();
-  const { signMessage } = useSignMessage();
+  const { sendTransaction } = useSendTransaction();
 
   const handleSubmitScore = async () => {
-    if (!isConnected) {
+    if (!isConnected || !address) {
       alert("Please connect your wallet first!");
       return;
     }
     
-    const message = `Cast Rush Score Submission\nScore: ${score}\nDistance: ${distance}m\nLikes: ${likes}\nAddress: ${address}\nAppId: 68f4d7adb6320e0dd0819bb3\nAttribution: ${getAttributionCode('score')}`;
-    
+    // Self-transfer to log the score on-chain using ERC-8021 attribution suffix
+    const scoreDataHex = stringToHex(`Score:${score}|Dist:${distance}|Likes:${likes}`);
+
     try {
-      await signMessage({ message, account: address as any });
-      alert("Score verified and submitted on-chain (Simulated)!");
+      sendTransaction({
+        to: address,
+        value: 0n,
+        data: buildAttributionPayload(scoreDataHex) as any
+      });
+      alert("Score verification transaction sent! (Simulated)");
     } catch (err) {
       console.error(err);
-      alert("Signature failed");
+      alert("Transaction failed");
     }
   };
 

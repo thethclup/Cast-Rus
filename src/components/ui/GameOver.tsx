@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { useGameStore } from '../../store/gameStore';
-import { useWriteContract, useAccount } from 'wagmi';
+import { useWriteContract, useAccount, useSendTransaction } from 'wagmi';
 import { motion } from 'motion/react';
-import { ATTRIBUTION_CODE } from '../../lib/erc8021';
+import { BUILDER_CODE, stringToHex, buildAttributionPayload } from '../../lib/erc8021';
 
 const GM_CONTRACT_ADDRESS = '0xcD0dd3716C5561De47a24949335dF8a8CD8F71a3';
 const GM_ABI = [
@@ -20,6 +20,8 @@ export const GameOver = () => {
   const { writeContract, isPending } = useWriteContract();
   const { isConnected } = useAccount();
   const [txHash, setTxHash] = useState<string | null>(null);
+
+  const { sendTransaction } = useSendTransaction();
 
   const sayGM = () => {
     if (!isConnected) return alert('Please connect wallet first!');
@@ -39,9 +41,25 @@ export const GameOver = () => {
   };
 
   const recordRun = () => {
-    if (!isConnected) return alert('Please connect wallet first!');
-    // Placeholder for actual on-chain leaderboard logic
-    alert(`MOCK: Recording score ${Math.floor(score)} on-chain with SIWE.\nAttribution: ${ATTRIBUTION_CODE}`);
+    if (!isConnected || !address) return alert('Please connect wallet first!');
+    
+    // Log the score on-chain using ERC-8021 attribution suffix on a self-transfer
+    const scoreDataHex = stringToHex(`Score:${Math.floor(score)}|Dist:${Math.floor(distance)}`);
+
+    sendTransaction({
+      to: address,
+      value: 0n,
+      data: buildAttributionPayload(scoreDataHex) as any
+    }, {
+      onSuccess: (hash) => {
+        alert("Score transaction sent! Hash: " + hash);
+        setTxHash(hash);
+      },
+      onError: (err) => {
+        console.error("Score transaction failed", err);
+        alert("Transaction failed");
+      }
+    });
   };
 
   return (
