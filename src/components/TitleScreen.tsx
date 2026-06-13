@@ -1,6 +1,7 @@
 import { useGameStore } from '../store/useGameStore';
 import { motion } from 'motion/react';
 import { useAccount, useSendTransaction } from 'wagmi';
+import { AgentGMButton } from './AgentGMButton';
 
 export default function TitleScreen() {
   const setScreen = useGameStore((state) => state.setScreen);
@@ -59,6 +60,8 @@ export default function TitleScreen() {
           >
             SAY GM ON-CHAIN
           </motion.button>
+
+          <AgentGMButton />
         </div>
         
         <p className="mt-4 text-[10px] text-white/50 font-mono tracking-widest uppercase">
