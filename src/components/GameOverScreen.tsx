@@ -1,7 +1,7 @@
 import { useGameStore } from '../store/useGameStore';
 import { motion } from 'motion/react';
 import { useAccount, useSendTransaction } from 'wagmi';
-import { getAttributionCode, buildAttributionPayload, stringToHex } from '../lib/erc8021';
+import { stringToHex } from 'viem';
 
 export default function GameOverScreen() {
   const { score, distance, likes, highScore, resetGame } = useGameStore();
@@ -14,14 +14,14 @@ export default function GameOverScreen() {
       return;
     }
     
-    // Self-transfer to log the score on-chain using ERC-8021 attribution suffix
+    // Log the score on-chain using ERC-8021 via Wagmi config. Using GM contract as mock target.
     const scoreDataHex = stringToHex(`Score:${score}|Dist:${distance}|Likes:${likes}`);
 
     try {
       sendTransaction({
-        to: address,
+        to: '0xcD0dd3716C5561De47a24949335dF8a8CD8F71a3', // standard GM contract
         value: 0n,
-        data: buildAttributionPayload(scoreDataHex) as any
+        data: scoreDataHex as any
       });
       alert("Score verification transaction sent! (Simulated)");
     } catch (err) {

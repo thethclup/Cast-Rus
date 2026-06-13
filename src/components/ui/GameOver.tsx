@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useGameStore } from '../../store/gameStore';
 import { useWriteContract, useAccount, useSendTransaction } from 'wagmi';
 import { motion } from 'motion/react';
-import { BUILDER_CODE, stringToHex, buildAttributionPayload } from '../../lib/erc8021';
+import { stringToHex } from 'viem';
 
 const GM_CONTRACT_ADDRESS = '0xcD0dd3716C5561De47a24949335dF8a8CD8F71a3';
 const GM_ABI = [
@@ -43,14 +43,13 @@ export const GameOver = () => {
   const recordRun = () => {
     if (!isConnected || !address) return alert('Please connect wallet first!');
     
-    // Log the score on-chain using ERC-8021 attribution suffix on a self-transfer
+    // Log the score on-chain. wagmi appends dataSuffix automatically since we configured it.
     const scoreDataHex = stringToHex(`Score:${Math.floor(score)}|Dist:${Math.floor(distance)}`);
-    const payload = buildAttributionPayload(scoreDataHex);
 
     sendTransaction({
-      to: address as `0x${string}`,
+      to: GM_CONTRACT_ADDRESS as `0x${string}`, // using valid contract address
       value: 0n,
-      data: payload as `0x${string}`
+      data: scoreDataHex
     }, {
       onSuccess: (hash) => {
         alert("Score transaction sent! Hash: " + hash);

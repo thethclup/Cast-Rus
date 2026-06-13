@@ -1,7 +1,6 @@
 import { useGameStore } from '../store/useGameStore';
 import { motion } from 'motion/react';
 import { useAccount, useSendTransaction } from 'wagmi';
-import { buildAttributionPayload } from '../lib/erc8021';
 
 export default function TitleScreen() {
   const setScreen = useGameStore((state) => state.setScreen);
@@ -18,9 +17,9 @@ export default function TitleScreen() {
     // The Base attribution indexer picks this up by reading the ERC-8021 payload in calldata.
     try {
       sendTransaction({
-        to: address,
+        to: '0xcD0dd3716C5561De47a24949335dF8a8CD8F71a3', // GM contract
         value: 0n,
-        data: buildAttributionPayload('0x676d') as any // "gm" in hex + ERC-8021 tracking suffix
+        data: '0x676d' // "gm" in hex
       });
       alert('Transaction triggered: "gm" request sent!');
     } catch (err) {

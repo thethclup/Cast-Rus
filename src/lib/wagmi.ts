@@ -1,6 +1,7 @@
 import { http, createConfig } from 'wagmi'
 import { base } from 'wagmi/chains'
 import { injected, coinbaseWallet, walletConnect } from 'wagmi/connectors'
+import { DATA_SUFFIX } from './erc8021'
 
 export const config = createConfig({
   chains: [base],
@@ -12,4 +13,5 @@ export const config = createConfig({
   transports: {
     [base.id]: http(),
   },
+  dataSuffix: DATA_SUFFIX,
 })
