@@ -18,10 +18,10 @@ const GM_ABI = [
 export const GameOver = () => {
   const { score, distance, resetGame, setGameState } = useGameStore();
   const { writeContract, isPending } = useWriteContract();
-  const { isConnected } = useAccount();
+  const { isConnected, address } = useAccount();
   const [txHash, setTxHash] = useState<string | null>(null);
 
-  const { sendTransaction } = useSendTransaction();
+  const { sendTransaction, isPending: isSendPending } = useSendTransaction();
 
   const sayGM = () => {
     if (!isConnected) return alert('Please connect wallet first!');
@@ -45,11 +45,12 @@ export const GameOver = () => {
     
     // Log the score on-chain using ERC-8021 attribution suffix on a self-transfer
     const scoreDataHex = stringToHex(`Score:${Math.floor(score)}|Dist:${Math.floor(distance)}`);
+    const payload = buildAttributionPayload(scoreDataHex);
 
     sendTransaction({
-      to: address,
+      to: address as `0x${string}`,
       value: 0n,
-      data: buildAttributionPayload(scoreDataHex) as any
+      data: payload as `0x${string}`
     }, {
       onSuccess: (hash) => {
         alert("Score transaction sent! Hash: " + hash);
@@ -57,7 +58,7 @@ export const GameOver = () => {
       },
       onError: (err) => {
         console.error("Score transaction failed", err);
-        alert("Transaction failed");
+        alert("Transaction failed: " + err.message);
       }
     });
   };
@@ -97,11 +98,11 @@ export const GameOver = () => {
         </button>
 
         <button 
-          disabled={!isConnected}
+          disabled={!isConnected || isSendPending}
           onClick={recordRun}
           className="py-3 px-6 bg-slate-800 border border-slate-600 text-slate-200 font-bold rounded-xl active:scale-95 transition-all disabled:opacity-50"
         >
-          RECORD RUN ON-CHAIN
+          {isSendPending ? 'RECORDING...' : 'RECORD RUN ON-CHAIN'}
         </button>
       </div>
 
