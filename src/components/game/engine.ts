@@ -39,6 +39,27 @@ export class GameEngine {
   private groundY: number = 0;
   private accumulator: number = 0;
 
+  // Internal state to decouple from React rendering loop 
+  private internalState = {
+    score: 0,
+    distance: 0,
+    combo: 0,
+    mana: 100,
+    maxMana: 100,
+    health: 3,
+    maxHealth: 3,
+    speed: 5,
+  };
+
+  // Keep track of what we last synced to React to avoid re-renders unless meaningful int changes occur
+  private lastSyncedState = {
+    score: 0,
+    distance: 0,
+    combo: 0,
+    mana: 100,
+    health: 3,
+  };
+
   constructor(canvas: HTMLCanvasElement) {
     this.canvas = canvas;
     this.ctx = canvas.getContext('2d')!;
@@ -48,6 +69,23 @@ export class GameEngine {
 
   public start() {
     this.lastTime = performance.now();
+    // Sync initial internal state from store
+    const store = useGameStore.getState();
+    this.internalState.score = store.score;
+    this.internalState.distance = store.distance;
+    this.internalState.combo = store.combo;
+    this.internalState.mana = store.mana;
+    this.internalState.health = store.health;
+    this.internalState.speed = store.speed;
+
+    this.lastSyncedState = {
+      score: Math.floor(store.score),
+      distance: Math.floor(store.distance),
+      combo: store.combo,
+      mana: Math.floor(store.mana),
+      health: store.health,
+    };
+    
     this.animationFrameId = requestAnimationFrame(this.loop.bind(this));
   }
 
@@ -71,9 +109,10 @@ export class GameEngine {
     };
     
     const config = spellConfig[type];
-    const store = useGameStore.getState();
     
-    if (store.useMana(config.cost)) {
+    if (this.internalState.mana >= config.cost) {
+      this.internalState.mana -= config.cost;
+
       this.spells.push({
         x: this.player.x + this.player.width,
         y: this.player.y + this.player.height / 2 - 10,
@@ -86,8 +125,9 @@ export class GameEngine {
         velocityY: 0,
         spellType: type
       });
-      // Screen shake or particles could be triggered here
       this.spawnParticles(this.player.x + this.player.width, this.player.y + this.player.height / 2, config.color, 5);
+      
+      this.syncStateIfNeeded();
     }
   }
 
@@ -115,13 +155,13 @@ export class GameEngine {
       return;
     }
 
-    this.update(dt, store);
+    this.update(dt);
     this.draw();
 
     this.animationFrameId = requestAnimationFrame(this.loop.bind(this));
   }
 
-  private update(dt: number, store: any) {
+  private update(dt: number) {
     // Player physics
     this.player.velocityY += 0.8; // Gravity
     this.player.y += this.player.velocityY;
@@ -133,11 +173,11 @@ export class GameEngine {
     }
 
     // Distance and speed
-    store.updateDistance(store.distance + store.speed * (dt / 16));
+    this.internalState.distance += this.internalState.speed * (dt / 16);
     
     // Spawn Logic
     this.accumulator += dt;
-    if (this.accumulator > 1500 - Math.min(store.speed * 50, 1000)) {
+    if (this.accumulator > 1500 - Math.min(this.internalState.speed * 50, 1000)) {
       this.accumulator = 0;
       // Spawn enemy
       if (Math.random() > 0.3) {
@@ -149,7 +189,7 @@ export class GameEngine {
           color: '#10b981', // green goblin/orc
           type: 'enemy',
           active: true,
-          velocityX: -(store.speed * 0.8),
+          velocityX: -(this.internalState.speed * 0.8),
           velocityY: 0
         });
       }
@@ -163,7 +203,7 @@ export class GameEngine {
           color: '#06b6d4', // cyan mana orb
           type: 'mana',
           active: true,
-          velocityX: -(store.speed),
+          velocityX: -(this.internalState.speed),
           velocityY: 0
         });
       }
@@ -182,8 +222,9 @@ export class GameEngine {
           spell.active = false;
           enemy.active = false;
           this.spawnParticles(enemy.x, enemy.y, spell.color, 15);
-          store.addScore(100);
-          store.incrementCombo();
+          
+          this.internalState.score += Math.floor(100 * (1 + this.internalState.combo * 0.1));
+          this.internalState.combo += 1;
         }
       }
     }
@@ -194,14 +235,21 @@ export class GameEngine {
       enemy.x += enemy.velocityX;
       if (enemy.x < -enemy.width) {
         enemy.active = false;
-        store.resetCombo(); // Missed an enemy? maybe reset combo
+        this.internalState.combo = 0; // Missed an enemy? reset combo
       }
 
       // Enemy - Player collision
       if (this.checkCollision(this.player, enemy)) {
         enemy.active = false;
-        store.takeDamage(1);
+        this.internalState.health = Math.max(0, this.internalState.health - 1);
+        this.internalState.combo = 0;
         this.spawnParticles(this.player.x, this.player.y, '#ef4444', 20); // Player hit effect
+
+        if (this.internalState.health <= 0) {
+          this.syncStateIfNeeded(true);
+          const store = useGameStore.getState();
+          store.setGameState('GAME_OVER');
+        }
       }
     }
 
@@ -214,7 +262,7 @@ export class GameEngine {
       if (this.checkCollision(this.player, item)) {
         item.active = false;
         if (item.type === 'mana') {
-          store.addMana(20);
+          this.internalState.mana = Math.min(this.internalState.maxMana, this.internalState.mana + 20);
         }
       }
     }
@@ -234,7 +282,42 @@ export class GameEngine {
 
     // Increase speed subtly
     if (Math.random() < 0.01) {
-      store.increaseSpeed(0.01);
+      this.internalState.speed += 0.01;
+    }
+
+    this.syncStateIfNeeded();
+  }
+
+  // Only sync to Zustand store if the value crossed an integer boundary or a major event occurred
+  private syncStateIfNeeded(force = false) {
+    const s = this.internalState;
+    const l = this.lastSyncedState;
+    
+    if (
+      force ||
+      Math.floor(s.distance) > l.distance ||
+      Math.floor(s.score) > l.score ||
+      Math.floor(s.mana) !== l.mana ||
+      s.combo !== l.combo ||
+      s.health !== l.health
+    ) {
+      this.lastSyncedState = {
+        distance: Math.floor(s.distance),
+        score: Math.floor(s.score),
+        mana: Math.floor(s.mana),
+        combo: s.combo,
+        health: s.health
+      };
+      
+      const store = useGameStore.getState();
+      useGameStore.setState({
+        distance: s.distance, // Store exact floats but only trigger updates sparingly
+        score: s.score,
+        mana: s.mana,
+        combo: s.combo,
+        health: s.health,
+        speed: s.speed
+      });
     }
   }
 

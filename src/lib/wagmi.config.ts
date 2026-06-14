@@ -1,7 +1,8 @@
 import { http, createConfig } from 'wagmi';
 import { base } from 'wagmi/chains';
 import { injected, coinbaseWallet, walletConnect } from 'wagmi/connectors';
-import { DATA_SUFFIX } from './erc8021';
+import { Attribution } from 'ox/erc8021';
+import { BUILDER_CODE } from './erc8021';
 
 export const wagmiConfig = createConfig({
   chains: [base],
@@ -13,6 +14,6 @@ export const wagmiConfig = createConfig({
   transports: {
     [base.id]: http(),
   },
-  dataSuffix: DATA_SUFFIX,
+  dataSuffix: Attribution.toDataSuffix({ codes: [BUILDER_CODE] }),
 });
 

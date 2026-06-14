@@ -14,7 +14,7 @@ The "Cast Rus Orchestrator" is an intelligent agent handling casting operations,
 - **Language:** TypeScript
 - **Styling:** Tailwind CSS
 - **Interoperability:** MCP (Model Context Protocol) implemented for AI agent-to-agent communication
-- **Web3:** Base Mainnet compatibility with Wagmi & Viem (Chain ID: `eip155:8453`)
+- **Onchain:** Base Mainnet compatibility with Wagmi & Viem (Chain ID: `eip155:8453`)
 
 ## Agent Capabilities & Skills
 

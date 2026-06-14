@@ -2,42 +2,12 @@ import React, { useState } from 'react';
 import { useGameStore } from '../../store/gameStore';
 import { useAccount } from 'wagmi';
 import { motion } from 'motion/react';
-import { useGM } from '../../hooks/useGM';
+import { useCastRus } from '../../hooks/useCastRus';
 
 export const GameOver = () => {
   const { score, distance, resetGame, setGameState } = useGameStore();
   const { isConnected } = useAccount();
-  const { sendGM, submitScore, isGMPending } = useGM();
-  
-  const [txHash, setTxHash] = useState<string | null>(null);
-  const [isSendPending, setIsSendPending] = useState(false);
-
-  const sayGM = async () => {
-    if (!isConnected) return;
-    try {
-      const hash = await sendGM();
-      if (hash) setTxHash(hash);
-    } catch (err) {
-      console.error(err);
-    }
-  };
-
-  const recordRunWagmi = async () => {
-    if (!isConnected) return;
-    setIsSendPending(true);
-    try {
-      const hash = await submitScore(Math.floor(score));
-      if (hash) {
-        alert("Score transaction sent! Hash: " + hash);
-        setTxHash(hash);
-      }
-    } catch (err: any) {
-      console.error(err);
-      alert("Transaction failed: " + err.message);
-    } finally {
-      setIsSendPending(false);
-    }
-  };
+  const { pullTrigger, isPending } = useCastRus();
 
   return (
     <motion.div 
@@ -66,33 +36,14 @@ export const GameOver = () => {
         </button>
         
         <button 
-          onClick={sayGM}
-          disabled={isGMPending || !isConnected}
-          className="py-3 px-6 bg-gradient-to-r from-emerald-500 to-teal-600 text-white font-bold rounded-xl active:scale-95 transition-all disabled:opacity-50"
-        >
-          {isGMPending ? 'TRANSACTING...' : 'SAY GM (Wagmi)'}
-        </button>
-
-        <button 
-          disabled={!isConnected || isSendPending}
-          onClick={recordRunWagmi}
+          disabled={!isConnected || isPending}
+          onClick={pullTrigger}
           className="py-3 px-6 bg-slate-800 border border-slate-600 text-slate-200 font-bold rounded-xl active:scale-95 transition-all disabled:opacity-50"
         >
-          {isSendPending ? 'RECORDING...' : 'RECORD RUN (Wagmi)'}
+          {isPending ? 'PULLING TRIGGER...' : 'PULL TRIGGER'}
         </button>
 
       </div>
-
-      {txHash && (
-        <a 
-          href={`https://basescan.org/tx/${txHash}`} 
-          target="_blank" 
-          rel="noreferrer"
-          className="mt-6 text-emerald-400 text-sm font-mono hover:underline"
-        >
-          View TX on Basescan
-        </a>
-      )}
 
       <button 
         onClick={() => setGameState('MENU')}
@@ -102,4 +53,4 @@ export const GameOver = () => {
       </button>
     </motion.div>
   );
-};;
+};

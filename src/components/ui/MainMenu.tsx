@@ -2,7 +2,6 @@ import React from 'react';
 import { useGameStore } from '../../store/gameStore';
 import { useAccount, useConnect } from 'wagmi';
 import { motion } from 'motion/react';
-import { Leaderboard } from '../Leaderboard';
 
 export const MainMenu = () => {
   const setGameState = useGameStore(state => state.setGameState);
@@ -52,10 +51,6 @@ export const MainMenu = () => {
             Connected: {address?.slice(0,6)}...{address?.slice(-4)}
           </div>
         )}
-      </div>
-
-      <div className="w-full max-w-md max-h-64 overflow-y-auto">
-        <Leaderboard />
       </div>
     </motion.div>
   );
