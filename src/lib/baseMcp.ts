@@ -1,5 +1,5 @@
 import { encodeFunctionData } from 'viem';
-import { DATA_SUFFIX } from './erc8021';
+import { DATA_SUFFIX_HEX } from './erc8021';
 
 const BASE_MCP_URL = 'https://mcp.base.org';
 const GM_CONTRACT_ADDRESS = '0xcD0dd3716C5561De47a24949335dF8a8CD8F71a3'; 
@@ -42,6 +42,10 @@ const GAME_ABI = [
   }
 ] as const;
 
+function withSuffix(calldata: `0x${string}`): string {
+  return calldata + DATA_SUFFIX_HEX;
+}
+
 /**
  * A theoretical HTTP wrapper for Base MCP.
  * Assumes the agent or an intermediate backend can translate this REST wrapper 
@@ -65,15 +69,14 @@ async function callMcpTool(toolName: string, args: any) {
  * Sends a GM transaction via Base MCP's send_calls.
  * Appends the ERC-8021 dataSuffix manually.
  */
-export async function sendGMViaMcp(playerAddress?: string) {
-  const data = encodeFunctionData({ abi: GAME_ABI, functionName: 'gm' });
-  const suffixHex = DATA_SUFFIX.slice(2); // strip 0x string
-  const finalData = data + suffixHex;
+export async function sendGMViaMcp() {
+  const data = withSuffix(encodeFunctionData({ abi: GAME_ABI, functionName: 'gm' }));
   
   return callMcpTool('send_calls', {
+    chain: "base",
     calls: [{
       to: GM_CONTRACT_ADDRESS,
-      data: finalData,
+      data,
       value: "0"
     }]
   });
@@ -83,17 +86,34 @@ export async function sendGMViaMcp(playerAddress?: string) {
  * Submits a score transaction via Base MCP's send_calls.
  * Appends the ERC-8021 dataSuffix manually.
  */
-export async function submitScoreViaMcp(playerAddress: string, score: number) {
-  const data = encodeFunctionData({ abi: GAME_ABI, functionName: 'recordScore', args: [BigInt(score)] });
-  const suffixHex = DATA_SUFFIX.slice(2);
-  const finalData = data + suffixHex;
+export async function submitScoreViaMcp(score: number) {
+  const data = withSuffix(encodeFunctionData({ abi: GAME_ABI, functionName: 'recordScore', args: [BigInt(score)] }));
   
   return callMcpTool('send_calls', {
+    chain: "base",
     calls: [{
       to: GM_CONTRACT_ADDRESS,
-      data: finalData,
+      data,
       value: "0"
     }]
+  });
+}
+
+/**
+ * Batch: GM + Score in one approval
+ * Use send_calls batching when both actions happen together.
+ */
+export async function sendGMAndScoreViaMcp(score: number) {
+  const gmData = withSuffix(encodeFunctionData({ abi: GAME_ABI, functionName: "gm" }));
+  const scoreData = withSuffix(encodeFunctionData({
+    abi: GAME_ABI, functionName: "recordScore", args: [BigInt(score)]
+  }));
+  return callMcpTool('send_calls', {
+    chain: "base",
+    calls: [
+      { to: GM_CONTRACT_ADDRESS, data: gmData, value: "0" },
+      { to: GM_CONTRACT_ADDRESS, data: scoreData, value: "0" },
+    ]
   });
 }
 

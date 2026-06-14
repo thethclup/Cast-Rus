@@ -1,65 +1,59 @@
 import React, { useState } from 'react';
 import { useGameStore } from '../../store/gameStore';
-import { useWriteContract, useAccount, useSendTransaction } from 'wagmi';
+import { useAccount } from 'wagmi';
 import { motion } from 'motion/react';
-import { stringToHex } from 'viem';
-
-const GM_CONTRACT_ADDRESS = '0xcD0dd3716C5561De47a24949335dF8a8CD8F71a3';
-const GM_ABI = [
-  {
-    "inputs": [],
-    "name": "gm",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  }
-];
+import { useGM } from '../../hooks/useGM';
+import { submitScoreViaMcp } from '../../lib/baseMcp';
+import { McpApprovalModal } from '../McpApprovalModal';
 
 export const GameOver = () => {
   const { score, distance, resetGame, setGameState } = useGameStore();
-  const { writeContract, isPending } = useWriteContract();
-  const { isConnected, address } = useAccount();
+  const { isConnected } = useAccount();
+  const { sendGM, submitScore, isGMPending } = useGM();
+  
   const [txHash, setTxHash] = useState<string | null>(null);
+  const [isSendPending, setIsSendPending] = useState(false);
+  const [mcpApproval, setMcpApproval] = useState<{ url: string; id: string } | null>(null);
 
-  const { sendTransaction, isPending: isSendPending } = useSendTransaction();
-
-  const sayGM = () => {
-    if (!isConnected) return alert('Please connect wallet first!');
-    writeContract({
-      address: GM_CONTRACT_ADDRESS,
-      abi: GM_ABI,
-      functionName: 'gm',
-    }, {
-      onSuccess: (hash) => {
-        setTxHash(hash);
-      },
-      onError: (err) => {
-        console.error("GM Transaction failed", err);
-        alert("Transaction failed or rejected.");
-      }
-    });
+  const sayGM = async () => {
+    if (!isConnected) return;
+    try {
+      const hash = await sendGM();
+      if (hash) setTxHash(hash);
+    } catch (err) {
+      console.error(err);
+    }
   };
 
-  const recordRun = () => {
-    if (!isConnected || !address) return alert('Please connect wallet first!');
-    
-    // Log the score on-chain. wagmi appends dataSuffix automatically since we configured it.
-    const scoreDataHex = stringToHex(`Score:${Math.floor(score)}|Dist:${Math.floor(distance)}`);
-
-    sendTransaction({
-      to: GM_CONTRACT_ADDRESS as `0x${string}`, // using valid contract address
-      value: 0n,
-      data: scoreDataHex
-    }, {
-      onSuccess: (hash) => {
+  const recordRunWagmi = async () => {
+    if (!isConnected) return;
+    try {
+      const hash = await submitScore(Math.floor(score));
+      if (hash) {
         alert("Score transaction sent! Hash: " + hash);
         setTxHash(hash);
-      },
-      onError: (err) => {
-        console.error("Score transaction failed", err);
-        alert("Transaction failed: " + err.message);
       }
-    });
+    } catch (err: any) {
+      console.error(err);
+      alert("Transaction failed: " + err.message);
+    }
+  };
+
+  const recordRunMCP = async () => {
+    setIsSendPending(true);
+    try {
+      const result = await submitScoreViaMcp(Math.floor(score));
+      if (result?.approvalUrl && result?.requestId) {
+        setMcpApproval({ url: result.approvalUrl, id: result.requestId });
+      } else {
+        alert("MCP failed");
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Failed to submit score via Agent MCP.");
+    } finally {
+      setIsSendPending(false);
+    }
   };
 
   return (
@@ -90,19 +84,28 @@ export const GameOver = () => {
         
         <button 
           onClick={sayGM}
-          disabled={isPending || !isConnected}
+          disabled={isGMPending || !isConnected}
           className="py-3 px-6 bg-gradient-to-r from-emerald-500 to-teal-600 text-white font-bold rounded-xl active:scale-95 transition-all disabled:opacity-50"
         >
-          {isPending ? 'TRANSACTING...' : 'SAY GM ON-CHAIN'}
+          {isGMPending ? 'TRANSACTING...' : 'SAY GM (Wagmi)'}
         </button>
 
         <button 
           disabled={!isConnected || isSendPending}
-          onClick={recordRun}
+          onClick={recordRunWagmi}
           className="py-3 px-6 bg-slate-800 border border-slate-600 text-slate-200 font-bold rounded-xl active:scale-95 transition-all disabled:opacity-50"
         >
-          {isSendPending ? 'RECORDING...' : 'RECORD RUN ON-CHAIN'}
+          {isSendPending ? 'RECORDING...' : 'RECORD RUN (Wagmi)'}
         </button>
+
+        <button 
+          disabled={isSendPending}
+          onClick={recordRunMCP}
+          className="py-3 px-6 bg-blue-900/50 border border-blue-500/50 text-blue-200 font-bold rounded-xl active:scale-95 transition-all disabled:opacity-50"
+        >
+          RECORD RUN (Agent MCP)
+        </button>
+
       </div>
 
       {txHash && (
@@ -114,6 +117,23 @@ export const GameOver = () => {
         >
           View TX on Basescan
         </a>
+      )}
+
+      {mcpApproval && (
+        <McpApprovalModal
+          approvalUrl={mcpApproval.url}
+          requestId={mcpApproval.id}
+          onCompleted={() => {
+            alert("Score successfully submitted on-chain via Agent!");
+            setMcpApproval(null);
+          }}
+          onFailed={() => {
+            alert("Agent transaction failed.");
+            setMcpApproval(null);
+          }}
+          onClose={() => setMcpApproval(null)}
+          onRetry={recordRunMCP}
+        />
       )}
 
       <button 
