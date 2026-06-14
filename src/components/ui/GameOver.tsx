@@ -3,8 +3,6 @@ import { useGameStore } from '../../store/gameStore';
 import { useAccount } from 'wagmi';
 import { motion } from 'motion/react';
 import { useGM } from '../../hooks/useGM';
-import { submitScoreViaMcp } from '../../lib/baseMcp';
-import { McpApprovalModal } from '../McpApprovalModal';
 
 export const GameOver = () => {
   const { score, distance, resetGame, setGameState } = useGameStore();
@@ -13,7 +11,6 @@ export const GameOver = () => {
   
   const [txHash, setTxHash] = useState<string | null>(null);
   const [isSendPending, setIsSendPending] = useState(false);
-  const [mcpApproval, setMcpApproval] = useState<{ url: string; id: string } | null>(null);
 
   const sayGM = async () => {
     if (!isConnected) return;
@@ -27,6 +24,7 @@ export const GameOver = () => {
 
   const recordRunWagmi = async () => {
     if (!isConnected) return;
+    setIsSendPending(true);
     try {
       const hash = await submitScore(Math.floor(score));
       if (hash) {
@@ -36,21 +34,6 @@ export const GameOver = () => {
     } catch (err: any) {
       console.error(err);
       alert("Transaction failed: " + err.message);
-    }
-  };
-
-  const recordRunMCP = async () => {
-    setIsSendPending(true);
-    try {
-      const result = await submitScoreViaMcp(Math.floor(score));
-      if (result?.approvalUrl && result?.requestId) {
-        setMcpApproval({ url: result.approvalUrl, id: result.requestId });
-      } else {
-        alert("MCP failed");
-      }
-    } catch (err) {
-      console.error(err);
-      alert("Failed to submit score via Agent MCP.");
     } finally {
       setIsSendPending(false);
     }
@@ -98,14 +81,6 @@ export const GameOver = () => {
           {isSendPending ? 'RECORDING...' : 'RECORD RUN (Wagmi)'}
         </button>
 
-        <button 
-          disabled={isSendPending}
-          onClick={recordRunMCP}
-          className="py-3 px-6 bg-blue-900/50 border border-blue-500/50 text-blue-200 font-bold rounded-xl active:scale-95 transition-all disabled:opacity-50"
-        >
-          RECORD RUN (Agent MCP)
-        </button>
-
       </div>
 
       {txHash && (
@@ -119,23 +94,6 @@ export const GameOver = () => {
         </a>
       )}
 
-      {mcpApproval && (
-        <McpApprovalModal
-          approvalUrl={mcpApproval.url}
-          requestId={mcpApproval.id}
-          onCompleted={() => {
-            alert("Score successfully submitted on-chain via Agent!");
-            setMcpApproval(null);
-          }}
-          onFailed={() => {
-            alert("Agent transaction failed.");
-            setMcpApproval(null);
-          }}
-          onClose={() => setMcpApproval(null)}
-          onRetry={recordRunMCP}
-        />
-      )}
-
       <button 
         onClick={() => setGameState('MENU')}
         className="mt-8 text-slate-400 hover:text-white transition-colors"
@@ -144,4 +102,4 @@ export const GameOver = () => {
       </button>
     </motion.div>
   );
-};
+};;

@@ -52,6 +52,10 @@ function withSuffix(calldata: `0x${string}`): string {
  * into MCP's STDIO/SSE JSON-RPC format, or mcp.base.org exposes a restful proxy.
  */
 async function callMcpTool(toolName: string, args: any) {
+  if (typeof window !== 'undefined') {
+    throw new Error('baseMcp functions must only be called from the server-side agent, not the browser.');
+  }
+
   const res = await fetch(`${BASE_MCP_URL}/v1/tools/call`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },

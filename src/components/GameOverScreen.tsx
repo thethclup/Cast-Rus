@@ -1,12 +1,21 @@
-import { useGameStore } from '../store/useGameStore';
+import { useGameStore } from '../store/gameStore';
 import { motion } from 'motion/react';
-import { useAccount, useSendTransaction } from 'wagmi';
-import { stringToHex } from 'viem';
+import { useAccount, useWriteContract } from 'wagmi';
+
+const GAME_ABI = [
+  {
+    type: 'function',
+    name: 'recordScore',
+    inputs: [{ name: 'score', type: 'uint256' }],
+    outputs: [],
+    stateMutability: 'nonpayable'
+  }
+] as const;
 
 export default function GameOverScreen() {
-  const { score, distance, likes, highScore, resetGame } = useGameStore();
+  const { score, distance, resetGame } = useGameStore();
   const { isConnected, address } = useAccount();
-  const { sendTransaction } = useSendTransaction();
+  const { writeContract } = useWriteContract();
 
   const handleSubmitScore = async () => {
     if (!isConnected || !address) {
@@ -14,14 +23,12 @@ export default function GameOverScreen() {
       return;
     }
     
-    // Log the score on-chain using ERC-8021 via Wagmi config. Using GM contract as mock target.
-    const scoreDataHex = stringToHex(`Score:${score}|Dist:${distance}|Likes:${likes}`);
-
     try {
-      sendTransaction({
-        to: '0xcD0dd3716C5561De47a24949335dF8a8CD8F71a3', // standard GM contract
-        value: 0n,
-        data: scoreDataHex as any
+      writeContract({
+        address: '0xcD0dd3716C5561De47a24949335dF8a8CD8F71a3', // standard GM contract
+        abi: GAME_ABI,
+        functionName: 'recordScore',
+        args: [BigInt(Math.floor(score))]
       });
       alert("Score verification transaction sent! (Simulated)");
     } catch (err) {
@@ -53,14 +60,6 @@ export default function GameOverScreen() {
           <div className="flex justify-between border-b border-white/10 pb-2">
             <span className="text-xs font-mono uppercase tracking-widest opacity-60">Score</span>
             <span className="font-black text-2xl text-[#0052FF]">{score}</span>
-          </div>
-          <div className="flex justify-between border-b border-white/10 pb-2">
-            <span className="text-xs font-mono uppercase tracking-widest opacity-60">Likes</span>
-            <span className="font-black text-2xl">{likes}</span>
-          </div>
-          <div className="flex justify-between border-b border-[#0052FF]/30 pb-2 bg-[#0052FF]/5 p-2 mt-4 items-center">
-            <span className="text-[10px] font-mono uppercase tracking-[0.2em] text-[#0052FF]">High Score</span>
-            <span className="font-black text-xl text-[#0052FF]">{highScore}m</span>
           </div>
         </div>
 

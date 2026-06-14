@@ -10,11 +10,11 @@ export default function TitleScreen() {
 
   const handleSayGM = () => {
     if (!isConnected || !address) {
-      alert("Please connect your wallet first to say gm on-chain!");
+      alert("Please connect your wallet first to say gm onchain!");
       return;
     }
     
-    // Send 0 ETH to own address to record the transaction on-chain.
+    // Send 0 ETH to own address to record the transaction onchain.
     // The Base attribution indexer picks this up by reading the ERC-8021 payload in calldata.
     try {
       sendTransaction({
@@ -58,7 +58,7 @@ export default function TitleScreen() {
             onClick={handleSayGM}
             className="w-full py-4 bg-[#050505] text-[#0052FF] border-2 border-[#0052FF] font-black uppercase tracking-widest text-sm hover:bg-[#0052FF] hover:text-black transition-all flex items-center justify-center shadow-[10px_10px_0px_white]"
           >
-            SAY GM ON-CHAIN
+            SAY GM ONCHAIN
           </motion.button>
 
           <AgentGMButton />

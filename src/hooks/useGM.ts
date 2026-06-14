@@ -1,6 +1,4 @@
-import { useWriteContract, useAccount, useSendTransaction } from 'wagmi';
-import { DATA_SUFFIX_HEX } from '../lib/erc8021';
-import { encodeFunctionData } from 'viem';
+import { useWriteContract, useAccount } from 'wagmi';
 
 const GM_CONTRACT_ADDRESS = '0xcD0dd3716C5561De47a24949335dF8a8CD8F71a3';
 
