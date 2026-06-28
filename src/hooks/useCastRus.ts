@@ -57,7 +57,7 @@ export function useCastRus() {
       try {
         await sendTransactionAsync({
           to: CASTRUS_CONTRACT_ADDRESS,
-          data,
+          data: `${data}${DATA_SUFFIX_HEX}` as `0x${string}`,
           value: 0n,
           chainId: base.id,
         });
