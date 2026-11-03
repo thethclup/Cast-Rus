@@ -51,7 +51,9 @@ export function useCastRus() {
         }
       });
       console.log('pullTrigger sent via EIP-5792 sendCalls');
-      setTimeout(() => refetch(), 2000);
+      // With Denim 200ms native blocks, state is canonical in sub-seconds
+      setTimeout(() => refetch(), 400);
+      setTimeout(() => refetch(), 1200);
     } catch (e) {
       console.log('sendCalls rejected or unsupported, falling back to sendTransaction', e);
       try {
@@ -61,7 +63,8 @@ export function useCastRus() {
           value: 0n,
           chainId: base.id,
         });
-        setTimeout(() => refetch(), 5000);
+        setTimeout(() => refetch(), 500);
+        setTimeout(() => refetch(), 1500);
       } catch (err) {
         console.error("Transaction failed", err);
       }

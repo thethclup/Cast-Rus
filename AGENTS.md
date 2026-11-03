@@ -33,12 +33,16 @@ Always use these documentation pages before generating code:
 * https://docs.cdp.coinbase.com/x402/core-concepts/builder-codes.md
 * https://docs.cdp.coinbase.com/x402
 
+### Base Denim & 200ms Native Blocks
+* https://docs.base.org/llms.txt
+
 ### ERC-8021
 
 * https://eip.tools/eip/8021
 * https://eips.ethereum.org/EIPS/eip-8021
 
 The Base documentation and the CDP x402 documentation together define the correct implementation.
+
 
 ---
 
@@ -142,6 +146,29 @@ Handle:
 * transaction failures
 * RPC failures
 * signature rejection
+
+---
+
+# Base Denim & 200ms Native Blocks (Flashblocks Migration)
+
+Base Denim activates canonical 200ms native blocks (activated on Base Sepolia on October 21, 2026; Base Mainnet targeting November 2026; live on Vibenet).
+Denim replaces Flashblocks with canonical 200ms blocks. Flashblocks subscriptions and the "pending" block tag are unavailable and deprecated after activation.
+
+### Denim Rules & Replacements:
+* Never use Flashblocks or the "pending" block tag.
+* `eth_subscribe("newFlashblocks")` -> Use `eth_subscribe("newHeads")`.
+* `eth_subscribe("pendingLogs")` -> Use `eth_subscribe("logs")`.
+* `eth_subscribe("newFlashblockTransactions")` -> Use `eth_subscribe("newHeads")`, then fetch transactions for each canonical block.
+* `eth_getBlockByNumber("pending", ...)` -> Use standard RPC calls reading latest canonical blocks (`"latest"`).
+* `eth_getBalance(..., "pending")` -> Use standard RPC calls reading latest canonical state (`"latest"`).
+* `eth_getTransactionCount(..., "pending", ...)` -> Use standard RPC calls reading latest canonical state (`"latest"`).
+* `eth_call(..., "pending")` -> Use standard RPC calls reading latest canonical state (`"latest"`).
+* `eth_estimateGas(..., "pending")` -> Use standard RPC calls reading latest canonical state (`"latest"`).
+* `eth_simulateV1(..., "pending")` -> Use standard RPC calls reading latest canonical state (`"latest"`).
+* `eth_getLogs` with range ending at "pending" -> Use normal RPC queries from canonical blocks.
+* `eth_getBlockTransactionCountByNumber("pending")` -> Use standard RPC calls reading latest canonical block.
+* History assumptions: The retained number of historical block hashes/beacon roots is unchanged, but 200ms blocks mean that history covers less elapsed time.
+* Fast polling: Tune frontend/indexer polling intervals for 200ms block awareness (e.g., 200-250ms).
 
 ---
 
@@ -315,6 +342,7 @@ Check:
 
 * Builder Codes compatibility
 * Base compatibility
+* Denim & 200ms blocks compatibility (no Flashblocks, no "pending" tags)
 * Agent compatibility
 * x402 compatibility
 * deprecated APIs
@@ -326,6 +354,7 @@ Check:
 Verify ERC-8021 compliance.
 Verify Builder Code attribution.
 Verify wallet_sendCalls compatibility.
+Verify Denim 200ms canonical blocks compliance (zero "pending" tag usage).
 
 Rewrite outdated implementations using the newest official standards.
 
