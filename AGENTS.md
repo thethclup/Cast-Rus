@@ -151,11 +151,16 @@ Handle:
 
 # Base Denim & 200ms Native Blocks (Flashblocks Migration)
 
-Base Denim activates canonical 200ms native blocks (activated on Base Sepolia on October 21, 2026; Base Mainnet targeting November 2026; live on Vibenet).
-Denim replaces Flashblocks with canonical 200ms blocks. Flashblocks subscriptions and the "pending" block tag are unavailable and deprecated after activation.
+Base Denim activates canonical 200ms native blocks.
+* Activated on Base Sepolia: October 21, 2026 at 18:00 UTC
+* Activated on Base Mainnet: November 5, 2026 at 18:00 UTC
+* Live on Vibenet for developer testing
 
-### Denim Rules & Replacements:
-* Never use Flashblocks or the "pending" block tag.
+Denim replaced Flashblocks with complete canonical blocks every 200ms on both Base Mainnet and Base Sepolia. Base stopped producing Flashblocks at activation; Flashblocks WebSocket streams (`wss://mainnet.flashblocks.base.org/ws`, `wss://sepolia.flashblocks.base.org/ws`), subscriptions, and pending state no longer return data.
+
+### Denim Rules & Migration Table:
+* **Never use Flashblocks or retired WebSocket endpoints**:
+  `wss://mainnet.flashblocks.base.org/ws` and `wss://sepolia.flashblocks.base.org/ws` no longer stream data. Use `eth_subscribe("newHeads")` or `eth_subscribe("logs")` on WebSocket-capable RPC providers.
 * `eth_subscribe("newFlashblocks")` -> Use `eth_subscribe("newHeads")`.
 * `eth_subscribe("pendingLogs")` -> Use `eth_subscribe("logs")`.
 * `eth_subscribe("newFlashblockTransactions")` -> Use `eth_subscribe("newHeads")`, then fetch transactions for each canonical block.
@@ -164,11 +169,16 @@ Denim replaces Flashblocks with canonical 200ms blocks. Flashblocks subscription
 * `eth_getTransactionCount(..., "pending", ...)` -> Use standard RPC calls reading latest canonical state (`"latest"`).
 * `eth_call(..., "pending")` -> Use standard RPC calls reading latest canonical state (`"latest"`).
 * `eth_estimateGas(..., "pending")` -> Use standard RPC calls reading latest canonical state (`"latest"`).
-* `eth_simulateV1(..., "pending")` -> Use standard RPC calls reading latest canonical state (`"latest"`).
+* `eth_simulateV1(..., "pending")` -> Simulates against canonical state; keep using canonical RPC endpoints.
+* `base_transactionStatus` -> Public endpoints reject it; poll canonical receipts instead.
+* `eth_getTransactionReceipt` -> Poll canonical blocks; receipts are available as soon as the transaction is included in a 200ms block. No preconfirmed receipts exist.
+* `eth_getTransactionByHash` -> Use canonical transaction data; block fields are set once included in a 200ms block.
 * `eth_getLogs` with range ending at "pending" -> Use normal RPC queries from canonical blocks.
 * `eth_getBlockTransactionCountByNumber("pending")` -> Use standard RPC calls reading latest canonical block.
-* History assumptions: The retained number of historical block hashes/beacon roots is unchanged, but 200ms blocks mean that history covers less elapsed time.
-* Fast polling: Tune frontend/indexer polling intervals for 200ms block awareness (e.g., 200-250ms).
+* **Validity transactions**: Remove `flashblock_index` predicates; bound transactions with `block_number` only.
+* **History assumptions**: 256-block `BLOCKHASH` window and 8,191-block EIP-2935 contract keep the same count, but 200ms blocks mean history covers one-tenth of the elapsed time.
+* **Node configuration**: Remove `RETH_FB_WEBSOCKET_URL`, `--flashblocks-url`, `--max-pending-blocks-depth`, and `--flashblocks.ping-interval`.
+* **Fast polling**: Tune frontend/indexer polling intervals for 200ms block awareness (200-250ms).
 
 ---
 

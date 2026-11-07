@@ -54,16 +54,24 @@ export async function pollStatus(
 
 /**
  * Denim Architecture Helper
- * Returns canonical block reading recommendations for Base 200ms native blocks.
+ * Base Denim 200ms canonical blocks are LIVE on:
+ * - Base Sepolia (Activated October 21, 2026 at 18:00 UTC)
+ * - Base Mainnet (Activated November 5, 2026 at 18:00 UTC)
  */
 export const DENIM_SPECS = {
   blockTimeMs: 200,
   recommendedPollingIntervalMs: 250,
   flashblocksDeprecated: true,
   canonicalBlockTag: 'latest',
+  retiredWebsocketEndpoints: [
+    'wss://mainnet.flashblocks.base.org/ws',
+    'wss://sepolia.flashblocks.base.org/ws',
+  ],
   replacedMethods: {
     newFlashblocks: 'newHeads',
     pendingLogs: 'logs',
     pendingTag: 'latest',
+    newFlashblockTransactions: 'newHeads + getBlock',
   },
 } as const;
+
